@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import AuthGuard from '@/components/auth/AuthGuard'
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar'
+import { DashboardContextProvider } from '@/components/dashboard/DashboardContext'
 import { OrgProvider } from '@/config/org-provider'
 import { defaultOrgConfig } from '@/config/orgs/default'
 import { useOrgConfig } from '@/hooks/use-org-config'
@@ -24,14 +25,16 @@ function DashboardInner({ children }: { children: React.ReactNode }) {
   const orgConfig = config || defaultOrgConfig
 
   return (
-    <OrgProvider config={orgConfig}>
-      <div className="flex min-h-screen">
-        <DashboardSidebar previewMode={!!previewOrgId} />
-        <div className="flex-1 bg-gray-50 p-8 overflow-auto">
-          {children}
+    <DashboardContextProvider previewOrgId={previewOrgId}>
+      <OrgProvider config={orgConfig}>
+        <div className="flex min-h-screen">
+          <DashboardSidebar previewMode={!!previewOrgId} />
+          <div className="flex-1 bg-gray-50 p-8 overflow-auto">
+            {children}
+          </div>
         </div>
-      </div>
-    </OrgProvider>
+      </OrgProvider>
+    </DashboardContextProvider>
   )
 }
 

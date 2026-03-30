@@ -1,6 +1,7 @@
 'use client'
 
 import { useOrg } from '@/config/org-provider'
+import { useDashboardQuery } from '@/components/dashboard/DashboardContext'
 import { FEATURE_KEYS } from '@/config/features'
 import { FEATURE_DESCRIPTIONS } from '@/config/feature-descriptions'
 import Link from 'next/link'
@@ -15,6 +16,7 @@ const MODULE_CARDS = [
 
 export default function DashboardHome() {
   const org = useOrg()
+  const qs = useDashboardQuery()
 
   const enabledModules = MODULE_CARDS.filter(m => org.features[m.key as keyof typeof org.features])
 
@@ -33,7 +35,7 @@ export default function DashboardHome() {
           {enabledModules.map(m => {
             const meta = FEATURE_DESCRIPTIONS[m.key as keyof typeof FEATURE_DESCRIPTIONS]
             return (
-              <Link key={m.key} href={m.href}
+              <Link key={m.key} href={`${m.href}${qs}`}
                 className="bg-white rounded-xl border border-gray-100 p-6 hover:shadow-md transition-shadow group">
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg mb-3 ${m.color}`}>
                   {m.icon}

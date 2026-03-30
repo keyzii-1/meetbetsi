@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useOrg } from '@/config/org-provider'
+import { useDashboardQuery } from '@/components/dashboard/DashboardContext'
 import { FEATURE_KEYS } from '@/config/features'
 
 interface NavItem {
@@ -23,6 +24,7 @@ const NAV_ITEMS: NavItem[] = [
 export default function DashboardSidebar({ previewMode }: { previewMode?: boolean }) {
   const pathname = usePathname()
   const org = useOrg()
+  const qs = useDashboardQuery()
 
   const visibleItems = NAV_ITEMS.filter(item =>
     !item.featureKey || org.features[item.featureKey as keyof typeof org.features]
@@ -45,7 +47,7 @@ export default function DashboardSidebar({ previewMode }: { previewMode?: boolea
             ? pathname === '/dashboard'
             : pathname.startsWith(item.href)
           return (
-            <Link key={item.href} href={item.href}
+            <Link key={item.href} href={`${item.href}${qs}`}
               className={`flex items-center px-4 py-2.5 text-sm transition-colors ${
                 isActive
                   ? 'text-brand-purple bg-brand-purple-bg font-medium'
