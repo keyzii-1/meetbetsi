@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase-client'
 
 export default function ContactForm() {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
@@ -12,6 +12,7 @@ export default function ContactForm() {
     if (!form.name.trim() || !form.email.trim() || !form.message.trim()) return
 
     setStatus('loading')
+    const supabase = createClient()
     const { error } = await supabase.from('contact_submissions').insert({
       name: form.name.trim(),
       email: form.email.trim(),

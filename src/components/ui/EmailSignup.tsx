@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase-client'
 
 interface EmailSignupProps {
   source: string
@@ -23,6 +23,7 @@ export default function EmailSignup({ source, variant = 'default' }: EmailSignup
     }
 
     setStatus('loading')
+    const supabase = createClient()
     const { error } = await supabase.from('subscribers').insert({ email: trimmed, source_page: source })
 
     if (error) {
