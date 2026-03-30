@@ -11,16 +11,53 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [ready, setReady] = useState(false)
+  const [checking, setChecking] = useState(true)
   const router = useRouter()
 
   useEffect(() => {
-    // Supabase automatically picks up the token from the URL hash
     const supabase = createClient()
-    supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
+
+    // Listen for PASSWORD_RECOVERY event (hash-based flow)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
         setReady(true)
+        setChecking(false)
       }
     })
+
+    // Also handle PKCE flow: if there's a code in the URL, exchange it
+    const url = new URL(window.location.href)
+    const code = url.searchParams.get('code')
+    if (code) {
+      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+        if (error) {
+          setError('Invalid or expired reset link. Please request a new one.')
+          setChecking(false)
+        } else {
+          setReady(true)
+          setChecking(false)
+        }
+      })
+    } else {
+      // Check if there's a hash fragment (implicit flow)
+      // Give the auth state listener a moment to fire
+      setTimeout(() => {
+        setChecking(prev => {
+          // If still checking after timeout, check if we have a session
+          supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+              setReady(true)
+            } else {
+              setError('Invalid or expired reset link. Please request a new one.')
+            }
+            setChecking(false)
+          })
+          return prev
+        })
+      }, 2000)
+    }
+
+    return () => subscription.unsubscribe()
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -56,10 +93,17 @@ export default function ResetPasswordPage() {
         <h1 className="text-2xl font-bold mb-1">Set Your Password</h1>
         <p className="text-brand-gray text-sm mb-8">Choose a secure password for your account.</p>
 
-        {!ready ? (
+        {checking ? (
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-2 border-brand-purple border-t-transparent mx-auto mb-4" />
             <p className="text-sm text-brand-gray">Verifying your reset link...</p>
+          </div>
+        ) : !ready ? (
+          <div className="text-center">
+            <p className="text-sm text-red-600 mb-4">{error || 'Invalid or expired reset link.'}</p>
+            <a href="/login" className="text-sm text-brand-purple hover:text-brand-purple-light">
+              Back to login
+            </a>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-5 w-full">
