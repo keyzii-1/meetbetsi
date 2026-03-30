@@ -3,14 +3,19 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import CreateUserForm from '@/components/admin/CreateUserForm'
+import type { UserRole } from '@/types/auth'
 
 interface UserRow {
   id: string
   email: string
   full_name: string | null
   orgName: string | null
-  role: string | null
+  orgId: string | null
+  role: UserRole | null
+  membershipId: string | null
 }
+
+const ROLES: UserRole[] = ['super_admin', 'org_admin', 'manager', 'caregiver', 'family_member']
 
 export default function UsersPage() {
   const [users, setUsers] = useState<UserRow[]>([])
@@ -23,14 +28,50 @@ export default function UsersPage() {
     const { data: profiles } = await supabase.from('profiles').select('*').order('created_at', { ascending: false })
     if (!profiles) return
 
-    const { data: memberships } = await supabase.from('org_memberships').select('user_id, role, org_id')
+    const { data: memberships } = await supabase.from('org_memberships').select('id, user_id, role, org_id')
     const { data: orgs } = await supabase.from('organizations').select('id, name')
     const orgMap = new Map((orgs || []).map(o => [o.id, o.name]))
 
     setUsers(profiles.map(p => {
       const mem = (memberships || []).find(m => m.user_id === p.id)
-      return { id: p.id, email: p.email, full_name: p.full_name, orgName: mem ? orgMap.get(mem.org_id) || null : null, role: mem?.role || null }
+      return {
+        id: p.id,
+        email: p.email,
+        full_name: p.full_name,
+        orgName: mem ? orgMap.get(mem.org_id) || null : null,
+        orgId: mem?.org_id || null,
+        role: mem?.role || null,
+        membershipId: mem?.id || null,
+      }
     }))
+  }
+
+  async function changeRole(membershipId: string, role: UserRole) {
+    const supabase = createClient()
+    await supabase.from('org_memberships').update({ role }).eq('id', membershipId)
+    loadUsers()
+  }
+
+  async function removeUser(userId: string, membershipId: string | null) {
+    if (!confirm('Remove this user and their org membership?')) return
+    const supabase = createClient()
+    if (membershipId) {
+      await supabase.from('org_memberships').delete().eq('id', membershipId)
+    }
+    await supabase.from('profiles').delete().eq('id', userId)
+    loadUsers()
+  }
+
+  async function sendPasswordReset(email: string) {
+    const supabase = createClient()
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+    if (error) {
+      alert('Failed to send reset email: ' + error.message)
+    } else {
+      alert(`Password reset email sent to ${email}`)
+    }
   }
 
   const filtered = users.filter(u =>
@@ -52,6 +93,7 @@ export default function UsersPage() {
               <th className="px-4 py-3 font-medium">Email</th>
               <th className="px-4 py-3 font-medium">Org</th>
               <th className="px-4 py-3 font-medium">Role</th>
+              <th className="px-4 py-3 font-medium">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -61,8 +103,24 @@ export default function UsersPage() {
                 <td className="px-4 py-3 text-brand-gray">{u.email}</td>
                 <td className="px-4 py-3 text-brand-gray">{u.orgName || '—'}</td>
                 <td className="px-4 py-3">
-                  {u.role && <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-brand-purple-bg text-brand-purple">{u.role.replace('_', ' ')}</span>}
-                  {!u.role && '—'}
+                  {u.membershipId ? (
+                    <select value={u.role || ''} onChange={e => changeRole(u.membershipId!, e.target.value as UserRole)}
+                      className="text-xs border rounded px-2 py-1 focus:border-brand-purple outline-none">
+                      {ROLES.map(r => <option key={r} value={r}>{r.replace(/_/g, ' ')}</option>)}
+                    </select>
+                  ) : '—'}
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => sendPasswordReset(u.email)}
+                      className="text-xs text-brand-purple hover:text-brand-purple-light">
+                      Send Reset
+                    </button>
+                    <button onClick={() => removeUser(u.id, u.membershipId)}
+                      className="text-xs text-red-500 hover:text-red-700">
+                      Delete
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

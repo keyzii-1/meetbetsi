@@ -88,8 +88,14 @@ export default function CreateUserForm({ onDone }: Props) {
       setMsg('User created but failed to assign org: ' + memErr.message)
       setMsgType('error')
     } else {
+      // Send password reset email so user can set their own password
+      if (!existing) {
+        await supabase.auth.resetPasswordForEmail(email.trim(), {
+          redirectTo: `${window.location.origin}/reset-password`,
+        })
+      }
       const orgName = orgs.find(o => o.id === orgId)?.name
-      setMsg(`${existing ? 'Added' : 'Created'} ${email.trim()} as ${role.replace('_', ' ')} in ${orgName}`)
+      setMsg(`${existing ? 'Added' : 'Created'} ${email.trim()} as ${role.replace('_', ' ')} in ${orgName}${!existing ? ' — invite email sent' : ''}`)
       setMsgType('success')
       setName('')
       setEmail('')
