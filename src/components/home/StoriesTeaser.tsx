@@ -2,7 +2,7 @@ import AnimateOnScroll from '@/components/ui/AnimateOnScroll'
 import SectionHeading from '@/components/ui/SectionHeading'
 import StoryCard from '@/components/cards/StoryCard'
 import Button from '@/components/ui/Button'
-import { STORIES } from '@/lib/constants'
+import { STORIES } from '@/config/content/stories'
 
 export default function StoriesTeaser() {
   return (

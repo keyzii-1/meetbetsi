@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import type { TeamMember } from '@/types'
+import type { TeamMember } from '@/types/team'
 
 export default function TeamCard({ name, title, image, linkedin }: TeamMember) {
   return (

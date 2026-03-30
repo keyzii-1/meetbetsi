@@ -1,8 +1,8 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import type { StoryCard as StoryCardType } from '@/types'
+import type { Story } from '@/types/stories'
 
-export default function StoryCard({ title, description, href, image }: StoryCardType) {
+export default function StoryCard({ title, description, href, image }: Story) {
   return (
     <Link href={href} className="group block rounded-xl overflow-hidden bg-white shadow-md hover:shadow-xl transition-all duration-400 hover:-translate-y-2 hover:-rotate-[0.5deg]">
       <div className="h-48 overflow-hidden">

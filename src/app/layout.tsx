@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter, Sora } from 'next/font/google'
+import { OrgProvider } from '@/config/org-provider'
+import { defaultOrgConfig } from '@/config/orgs/default'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import './globals.css'
@@ -28,11 +30,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${inter.variable} ${sora.variable} antialiased`}>
       <body className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-1 pt-[72px]">
-          {children}
-        </main>
-        <Footer />
+        {/* Phase 1: hardcoded default config. Phase 2: fetched from Supabase on login */}
+        <OrgProvider config={defaultOrgConfig}>
+          <Header />
+          <main className="flex-1 pt-[72px]">
+            {children}
+          </main>
+          <Footer />
+        </OrgProvider>
       </body>
     </html>
   )

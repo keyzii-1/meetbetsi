@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import AnimateOnScroll from '@/components/ui/AnimateOnScroll'
 import TeamCard from '@/components/cards/TeamCard'
 import EmailSignup from '@/components/ui/EmailSignup'
-import { TEAM_MEMBERS } from '@/lib/constants'
+import { TEAM_MEMBERS } from '@/config/team'
 
 export const metadata: Metadata = {
   title: 'The Team',

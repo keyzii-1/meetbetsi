@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import AnimateOnScroll from '@/components/ui/AnimateOnScroll'
 import BlogCard from '@/components/cards/BlogCard'
-import { BLOG_POSTS } from '@/lib/constants'
+import { BLOG_POSTS } from '@/config/content/blog-posts'
 
 export const metadata: Metadata = {
   title: 'Blog',
