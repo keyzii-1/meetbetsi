@@ -28,8 +28,8 @@ export async function middleware(request: NextRequest) {
   // Refresh session (important for Server Components)
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Protect /admin routes
-  if (request.nextUrl.pathname.startsWith('/admin')) {
+  // Protect /admin and /dashboard routes
+  if (request.nextUrl.pathname.startsWith('/admin') || request.nextUrl.pathname.startsWith('/dashboard')) {
     if (!user) {
       const loginUrl = new URL('/login/', request.url)
       loginUrl.searchParams.set('redirect', request.nextUrl.pathname)

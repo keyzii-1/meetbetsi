@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, use } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase-client'
 import OrgTabs from '@/components/admin/OrgTabs'
 import OrgGeneralTab from '@/components/admin/OrgGeneralTab'
@@ -50,11 +51,17 @@ export default function OrgDetailPage({ params }: { params: Promise<{ id: string
           </button>
           <h1 className="text-2xl font-heading font-bold text-brand-dark">{org.name}</h1>
         </div>
-        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-          org.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-        }`}>
-          {org.is_active ? 'Active' : 'Inactive'}
-        </span>
+        <div className="flex items-center gap-3">
+          <Link href={`/dashboard?preview_org=${id}`}
+            className="px-4 py-1.5 rounded-lg bg-brand-purple text-white text-xs font-medium hover:bg-brand-purple-light transition-colors">
+            Preview as Client
+          </Link>
+          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+            org.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+          }`}>
+            {org.is_active ? 'Active' : 'Inactive'}
+          </span>
+        </div>
       </div>
 
       <OrgTabs active={tab} onChange={setTab} />
