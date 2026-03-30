@@ -1,0 +1,42 @@
+alerts:
+- rule: DEPLOYMENT_FAILED
+- rule: DOMAIN_FAILED
+domains:
+- domain: meetbetsi.com
+  type: PRIMARY
+features:
+- buildpack-stack=ubuntu-22
+ingress:
+  rules:
+  - component:
+      name: meetbetsi
+    match:
+      authority:
+        exact: ""
+      path:
+        prefix: /
+name: squid-app
+region: nyc
+services:
+- build_command: npm run build
+  run_command: npm start
+  environment_slug: node-js
+  instance_count: 1
+  instance_size_slug: apps-s-1vcpu-0.5gb
+  http_port: 3000
+  envs:
+  - key: NEXT_PUBLIC_SUPABASE_URL
+    scope: RUN_AND_BUILD_TIME
+    value: "https://dtfbdnpwxxcbkoknrlyv.supabase.co"
+  - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+    scope: RUN_AND_BUILD_TIME
+    value: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR0ZmJkbnB3eHhjYmtva25ybHl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4MzkxNzYsImV4cCI6MjA5MDQxNTE3Nn0.rwRxNvQfY_lxNd7VGCDj3tCWkDwR4A9EEU9gQkCkEY8"
+  - key: NEXT_PUBLIC_SITE_URL
+    scope: RUN_AND_BUILD_TIME
+    value: "https://meetbetsi.com"
+  github:
+    branch: main
+    deploy_on_push: true
+    repo: keyzii-1/meetbetsi
+  name: meetbetsi
+  source_dir: /
