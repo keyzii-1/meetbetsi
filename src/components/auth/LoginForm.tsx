@@ -40,7 +40,7 @@ export default function LoginForm() {
 
     const supabase = createClient()
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+      redirectTo: 'https://meetbetsi.com/auth/callback?next=/reset-password',
     })
 
     if (resetError) {

@@ -91,7 +91,7 @@ export default function CreateUserForm({ onDone }: Props) {
       // Send password reset email so user can set their own password
       if (!existing) {
         await supabase.auth.resetPasswordForEmail(email.trim(), {
-          redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+          redirectTo: 'https://meetbetsi.com/auth/callback?next=/reset-password',
         })
       }
       const orgName = orgs.find(o => o.id === orgId)?.name
