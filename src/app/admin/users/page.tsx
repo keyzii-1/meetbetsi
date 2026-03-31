@@ -65,7 +65,7 @@ export default function UsersPage() {
   async function sendPasswordReset(email: string) {
     const supabase = createClient()
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
     })
     if (error) {
       alert('Failed to send reset email: ' + error.message)

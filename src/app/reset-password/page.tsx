@@ -15,49 +15,17 @@ export default function ResetPasswordPage() {
   const router = useRouter()
 
   useEffect(() => {
+    // The /auth/callback route already exchanged the code for a session.
+    // We just need to verify the user has an active session.
     const supabase = createClient()
-
-    // Listen for PASSWORD_RECOVERY event (hash-based flow)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
         setReady(true)
-        setChecking(false)
+      } else {
+        setError('No active session. Please request a new password reset link.')
       }
+      setChecking(false)
     })
-
-    // Also handle PKCE flow: if there's a code in the URL, exchange it
-    const url = new URL(window.location.href)
-    const code = url.searchParams.get('code')
-    if (code) {
-      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
-        if (error) {
-          setError('Invalid or expired reset link. Please request a new one.')
-          setChecking(false)
-        } else {
-          setReady(true)
-          setChecking(false)
-        }
-      })
-    } else {
-      // Check if there's a hash fragment (implicit flow)
-      // Give the auth state listener a moment to fire
-      setTimeout(() => {
-        setChecking(prev => {
-          // If still checking after timeout, check if we have a session
-          supabase.auth.getSession().then(({ data: { session } }) => {
-            if (session) {
-              setReady(true)
-            } else {
-              setError('Invalid or expired reset link. Please request a new one.')
-            }
-            setChecking(false)
-          })
-          return prev
-        })
-      }, 2000)
-    }
-
-    return () => subscription.unsubscribe()
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -96,11 +64,11 @@ export default function ResetPasswordPage() {
         {checking ? (
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-2 border-brand-purple border-t-transparent mx-auto mb-4" />
-            <p className="text-sm text-brand-gray">Verifying your reset link...</p>
+            <p className="text-sm text-brand-gray">Verifying your session...</p>
           </div>
         ) : !ready ? (
           <div className="text-center">
-            <p className="text-sm text-red-600 mb-4">{error || 'Invalid or expired reset link.'}</p>
+            <p className="text-sm text-red-600 mb-4">{error}</p>
             <a href="/login" className="text-sm text-brand-purple hover:text-brand-purple-light">
               Back to login
             </a>
