@@ -3,9 +3,9 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url)
+  const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/dashboard'
+  const baseUrl = 'https://meetbetsi.com'
 
   if (code) {
     const cookieStore = await cookies()
@@ -28,10 +28,10 @@ export async function GET(request: Request) {
 
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
+      // Always go to reset-password after recovery code exchange
+      return NextResponse.redirect(`${baseUrl}/reset-password`)
     }
   }
 
-  // If code exchange failed, redirect to login with error
-  return NextResponse.redirect(`${origin}/login?error=reset_failed`)
+  return NextResponse.redirect(`${baseUrl}/login?error=reset_failed`)
 }

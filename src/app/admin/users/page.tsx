@@ -65,7 +65,7 @@ export default function UsersPage() {
   async function sendPasswordReset(email: string) {
     const supabase = createClient()
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: 'https://meetbetsi.com/auth/callback?next=/reset-password',
+      redirectTo: 'https://meetbetsi.com/auth/callback',
     })
     if (error) {
       alert('Failed to send reset email: ' + error.message)
