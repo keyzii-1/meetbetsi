@@ -15,17 +15,61 @@ export default function ResetPasswordPage() {
   const router = useRouter()
 
   useEffect(() => {
-    // The /auth/callback route already exchanged the code for a session.
-    // We just need to verify the user has an active session.
     const supabase = createClient()
+
+    // Try all possible flows Supabase might use:
+
+    // 1. PKCE flow: ?code= in query string
+    const url = new URL(window.location.href)
+    const code = url.searchParams.get('code')
+
+    if (code) {
+      supabase.auth.exchangeCodeForSession(code).then(({ error: err }) => {
+        if (err) {
+          setError('Invalid or expired reset link. Please request a new one.')
+        } else {
+          setReady(true)
+        }
+        setChecking(false)
+      })
+      return
+    }
+
+    // 2. Implicit flow: #access_token= in hash
+    const hash = window.location.hash
+    if (hash && hash.includes('access_token')) {
+      // Supabase client auto-detects hash fragments
+      // Just wait for the auth state to update
+    }
+
+    // 3. Listen for auth events (handles hash fragments)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
+        setReady(true)
+        setChecking(false)
+      }
+    })
+
+    // 4. Fallback: check if already have a session (e.g. came from callback route)
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         setReady(true)
+        setChecking(false)
       } else {
-        setError('No active session. Please request a new password reset link.')
+        // Give hash detection a moment, then give up
+        setTimeout(() => {
+          setChecking(current => {
+            if (current) {
+              setError('Invalid or expired reset link. Please request a new one.')
+              return false
+            }
+            return current
+          })
+        }, 3000)
       }
-      setChecking(false)
     })
+
+    return () => subscription.unsubscribe()
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -64,7 +108,7 @@ export default function ResetPasswordPage() {
         {checking ? (
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-2 border-brand-purple border-t-transparent mx-auto mb-4" />
-            <p className="text-sm text-brand-gray">Verifying your session...</p>
+            <p className="text-sm text-brand-gray">Verifying your reset link...</p>
           </div>
         ) : !ready ? (
           <div className="text-center">
